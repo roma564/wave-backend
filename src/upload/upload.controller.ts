@@ -15,7 +15,7 @@ import { FileInterceptor } from '@nestjs/platform-express'
 import { Response } from 'express'
 import { diskStorage } from 'multer'
 import * as path from 'path'
-import { UserService } from 'src/user/user.service'
+import { UserService } from '../user/user.service'
 
 
 @Controller('upload')

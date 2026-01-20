@@ -4,7 +4,7 @@ import { Strategy } from 'passport-google-oauth20';
 import { AuthService } from '../auth.service';
 import { GooglePayload } from './google-payload.type';
 import { response } from 'express';
-import { UserService } from 'src/user/user.service';
+import { UserService } from '../../user/user.service';
 import { User } from '../types/User';
 
 @Injectable()

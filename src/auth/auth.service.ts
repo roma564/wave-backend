@@ -1,7 +1,7 @@
 import { Body, Injectable, Post, Res, UnauthorizedException } from '@nestjs/common';
 import { GooglePayload } from './google/google-payload.type';
-import { CreateUserDto } from 'src/user/dto/create-user.dto';
-import { UserService } from 'src/user/user.service';
+import { CreateUserDto } from '../user/dto/create-user.dto';
+import { UserService } from '../user/user.service';
 import { Response } from 'express';
 import { JwtService } from '@nestjs/jwt';
 import { User } from './types/User'; 
@@ -10,9 +10,9 @@ import * as bcrypt from 'bcrypt';
 // import { BadRequestException, Injectable } from '@nestjs/common';
 // import { JwtService } from '@nestjs/jwt';
 // import * as bcrypt from 'bcrypt';
-// // import { User } from 'src/users/users.entity';
+// // import { User } from '../users/users.entity';
 // import { AccessToken } from './types/AccessToken';
-// import { UsersService } from 'src/users/users.service';
+// import { UsersService } from '../users/users.service';
 // import { RegisterRequestDto } from './dtos/register-request.dto';
 // import { User } from 'generated/prisma';
 

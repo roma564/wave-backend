@@ -2,11 +2,11 @@ import { Body, Controller, Get, Post, Req, Request, Res, UnauthorizedException, 
 import { AuthService } from './auth.service';
 import { GoogleOAuth2Guard } from './google/google-oauth.guard';
 import { Response } from 'express';
-import { UserService } from 'src/user/user.service';
+import { UserService } from '../user/user.service';
 import { JwtService } from '@nestjs/jwt';
 import { AuthGuard } from './guard/auth.guard';
 import { LoginDto } from './dto/login.dto';
-import { CreateUserDto } from 'src/user/dto/create-user.dto';
+import { CreateUserDto } from '../user/dto/create-user.dto';
 import { StreamClient } from '@stream-io/node-sdk';
 
 @Controller('auth')

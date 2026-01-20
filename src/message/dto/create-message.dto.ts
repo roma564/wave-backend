@@ -1,5 +1,5 @@
 import { IsInt, IsOptional, IsString, IsNumber, IsEnum } from 'class-validator';
-import { MessageType } from 'src/types/MessageType';
+import { MessageType } from '../../types/MessageType';
 
 
 

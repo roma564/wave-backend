@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { CreateMessageDto } from './dto/create-message.dto';
 import { UpdateMessageDto } from './dto/update-message.dto';
-import { PrismaService } from 'src/prisma.service';
-import { ChatService } from 'src/chat/chat.service';
-import { Message } from 'src/types/Message';
+import { PrismaService } from '../prisma.service';
+import { ChatService } from '../chat/chat.service';
+import { Message } from '../types/Message';
 
 
 

@@ -2,12 +2,12 @@ import { WebSocketGateway, SubscribeMessage, MessageBody, WebSocketServer } from
 import { GatewayService } from './gateway.service';
 import { CreateGatewayDto } from './dto/create-gateway.dto';
 import { UpdateGatewayDto } from './dto/update-gateway.dto';
-import { ChatService } from 'src/chat/chat.service';
+import { ChatService } from '../chat/chat.service';
 
-import { MessageService } from 'src/message/message.service';
+import { MessageService } from '../message/message.service';
 import { Server } from 'socket.io';
-import { MessageType } from 'src/types/MessageType';
-import { UserService } from 'src/user/user.service';
+import { MessageType } from '../types/MessageType';
+import { UserService } from '../user/user.service';
 import { Logger } from '@nestjs/common';
 
 

@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { PrismaService } from 'src/prisma.service';
+import { PrismaService } from '../prisma.service';
 import { CreateModeDto } from './dto/create-mode.dto';
 import { Prisma, ThemeName } from '@prisma/client';
 
