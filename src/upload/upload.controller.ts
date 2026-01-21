@@ -9,6 +9,7 @@ import {
   Res,
   UploadedFile,
   UseInterceptors,
+  Logger
 } from '@nestjs/common'
 import * as fs from 'fs'
 import { FileInterceptor } from '@nestjs/platform-express'
@@ -16,34 +17,36 @@ import { Response } from 'express'
 import { diskStorage } from 'multer'
 import * as path from 'path'
 import { UserService } from '../user/user.service'
+import { S3Service } from './s3.service';
 
 
 @Controller('upload')
 export class UploadController {
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly s3Service: S3Service
+   
+  ) {}
+   private readonly logger = new Logger(UploadController.name)
+
 
   @Post('file')
-  @UseInterceptors(FileInterceptor('file', {
-    storage: diskStorage({
-      destination: './uploads/files',
-      filename: (req, file, cb) => {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9)
-        cb(null, uniqueSuffix + path.extname(file.originalname))
+  @UseInterceptors(FileInterceptor('file'))
+  async upload(@UploadedFile() file: Express.Multer.File) {
+    const uniqueKey = Date.now() + '-' + file.originalname;
 
-      },
-    }),
-  }))
-
-  uploadFile(@UploadedFile() file: Express.Multer.File) {
-    if (!file) throw new BadRequestException('Файл не завантажено')
+    await this.s3Service.uploadFile(process.env.SUPABASE_BUCKET as string, uniqueKey, file.buffer, file.mimetype);
 
     return {
-      path: `/uploads/files/${file.filename}`,
-      fileName: file.originalname,
-      fileSize: file.size,
+      key: uniqueKey,
+      bucket: process.env.SUPABASE_BUCKET,
       mimeType: file.mimetype,
-    }
+      size: file.size,
+      url: `${process.env.SUPABASE_S3_ENDPOINT}/${process.env.SUPABASE_BUCKET}/${uniqueKey}`,
+    };
   }
+
+
 
 @Get('download')
 downloadFile(
