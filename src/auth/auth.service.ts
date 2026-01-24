@@ -14,7 +14,7 @@ import * as bcrypt from 'bcrypt';
 // import { AccessToken } from './types/AccessToken';
 // import { UsersService } from '../users/users.service';
 // import { RegisterRequestDto } from './dtos/register-request.dto';
-// import { User } from 'generated/prisma';
+
 
 
 @Injectable()
