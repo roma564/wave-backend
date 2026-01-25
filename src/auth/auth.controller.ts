@@ -36,8 +36,9 @@ export class AuthController {
 
       res.cookie('access_token', access_token, {
         httpOnly: true,
-        secure: false,
+        secure: true,
         sameSite: 'none',
+        domain: '.vercel.app',
         maxAge: 3600000,
       });
 
@@ -105,12 +106,14 @@ async login(
     process.env.STREAM_SECRET_KEY!,
   );
   const stream_token = streamClient.createToken(String(user.id));
-
+  //TODO for each method
   const cookieOptions = {
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict' as const,
+    secure: process.env.NODE_ENV === 'production', // обов’язково для HTTPS
+    sameSite: 'none' as const,                     // дозволяє крос-домен
+    httpOnly: true,                                // захист від XSS
     maxAge: 60 * 60 * 1000,
   };
+
 
   response.cookie('access_token', access_token, { ...cookieOptions });
   response.cookie('stream_token', stream_token, { ...cookieOptions, httpOnly: false });
