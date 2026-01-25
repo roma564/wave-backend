@@ -6,11 +6,11 @@ let app: INestApplication;
 let server: any;
 
 export default async function handler(req, res) {
-  if (!app) {
+  if (!server) {
     app = await NestFactory.create(AppModule);
 
     app.enableCors({
-      origin: [process.env.FRONTEND_URL],
+      origin: process.env.FRONTEND_URL?.split(',') || '*',
       credentials: true,
     });
 
