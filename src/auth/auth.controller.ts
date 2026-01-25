@@ -121,7 +121,7 @@ async login(
   response.cookie('avatar', user.avatar, { ...cookieOptions, httpOnly: false });
 
   // Явно відправляємо JSON-відповідь
- return { message: 'Logged in successfully', redirectUrl: `${process.env.FRONTEND_URL}/login`, };
+ return { message: 'Logged in successfully', redirectUrl: `${process.env.FRONTEND_URL}/chat`, };
 }
 
 
