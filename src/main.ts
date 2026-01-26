@@ -1,6 +1,5 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { createServer } from 'http';
 import { Server } from 'socket.io';
 
 async function bootstrap() {
@@ -11,9 +10,9 @@ async function bootstrap() {
     credentials: true,
   });
 
-  const httpServer = createServer(app.getHttpAdapter().getInstance());
+  const server = app.getHttpServer();
 
-  const io = new Server(httpServer, {
+  const io = new Server(server, {
     cors: {
       origin: process.env.FRONTEND_URL,
       credentials: true,
@@ -24,10 +23,7 @@ async function bootstrap() {
     console.log('Socket connected:', socket.id);
   });
 
-  await app.init();
-
-  httpServer.listen(process.env.PORT, () => {
-    console.log(`🚀 Server running on port ${process.env.PORT}`);
-  });
+  await app.listen(process.env.PORT as string);
+  console.log(`🚀 Server running on port ${process.env.PORT}`);
 }
 bootstrap();
