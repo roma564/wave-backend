@@ -10,20 +10,8 @@ async function bootstrap() {
     credentials: true,
   });
 
-  const server = app.getHttpServer();
-
-  const io = new Server(server, {
-    cors: {
-      origin: process.env.FRONTEND_URL,
-      credentials: true,
-    },
-  });
-
-  io.on('connection', socket => {
-    console.log('Socket connected:', socket.id);
-  });
 
   await app.listen(process.env.PORT as string);
-  console.log(`🚀 Server running on port ${process.env.PORT}`);
+  console.log(` Server running on port ${process.env.PORT}`);
 }
 bootstrap();
