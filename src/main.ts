@@ -24,12 +24,10 @@ async function bootstrap() {
     console.log('Socket connected:', socket.id);
   });
 
-
   await app.init();
 
-  // запускаємо і HTTP, і WebSocket на одному порту
-  httpServer.listen(process.env.PORT || 5000, () =>
-    console.log(`🚀 Server running on port ${process.env.PORT || 5000}`)
-  );
+  httpServer.listen(process.env.PORT, () => {
+    console.log(`🚀 Server running on port ${process.env.PORT}`);
+  });
 }
 bootstrap();
