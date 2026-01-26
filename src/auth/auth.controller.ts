@@ -89,10 +89,7 @@ export class AuthController {
 
 
 @Post('login')
-async login(
-  @Res({ passthrough: true }) response: Response,
-  @Body() body: LoginDto,
-) {
+async login(@Body() body: LoginDto) {
   const { user } = await this.authService.signIn(body.username, body.password);
 
   const payload = { sub: user.id, username: user.name };
@@ -106,30 +103,25 @@ async login(
     process.env.STREAM_SECRET_KEY!,
   );
   const stream_token = streamClient.createToken(String(user.id));
-  //TODO for each method
-  const cookieOptions = {
-    secure: process.env.NODE_ENV === 'production', // обов’язково для HTTPS
-    sameSite: 'none' as const,                     // дозволяє крос-домен
-    httpOnly: true,                                // захист від XSS
-    maxAge: 60 * 60 * 1000,
-    domain: process.env.COOKIE_DOMAIN
+
+
+  return {
+    message: 'Logged in successfully',
+    redirectUrl: `${process.env.FRONTEND_URL}/chat`,
+    tokens: {
+      access_token,
+      stream_token,
+    },
+    user: {
+      id: user.id,
+      username: user.name,
+      lastname: user.lastname,
+      email: user.email,
+      avatar: user.avatar,
+    },
   };
-
-
-
-
-
-  response.cookie('access_token', access_token, { ...cookieOptions });
-  response.cookie('stream_token', stream_token, { ...cookieOptions, httpOnly: false });
-  response.cookie('id', user.id, { ...cookieOptions, httpOnly: false });
-  response.cookie('username', user.name, { ...cookieOptions, httpOnly: false });
-  response.cookie('lastname', user.lastname, { ...cookieOptions, httpOnly: false });
-  response.cookie('email', user.email, { ...cookieOptions, httpOnly: false });
-  response.cookie('avatar', user.avatar, { ...cookieOptions, httpOnly: false });
-
-  // Явно відправляємо JSON-відповідь
- return { message: 'Logged in successfully', redirectUrl: `${process.env.FRONTEND_URL}/chat`, };
 }
+
 
 
 
