@@ -1,25 +1,35 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { INestApplication } from '@nestjs/common';
+import { createServer } from 'http';
+import { Server } from 'socket.io';
 
-let app: INestApplication;
-let server: any;
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
 
-export default async function handler(req, res) {
-  if (!server) {
-    app = await NestFactory.create(AppModule);
+  app.enableCors({
+    origin: process.env.FRONTEND_URL,
+    credentials: true,
+  });
 
-    app.enableCors({
+  const httpServer = createServer(app.getHttpAdapter().getInstance());
+
+  const io = new Server(httpServer, {
+    cors: {
       origin: process.env.FRONTEND_URL,
       credentials: true,
-      methods: 'GET,POST,PUT,DELETE,PATCH,OPTIONS',
-      allowedHeaders: 'Content-Type, Authorization',
-    });
+    },
+  });
+
+  io.on('connection', socket => {
+    console.log('Socket connected:', socket.id);
+  });
 
 
+  await app.init();
 
-    await app.init();
-    server = app.getHttpAdapter().getInstance();
-  }
-  return server(req, res);
+  // запускаємо і HTTP, і WebSocket на одному порту
+  httpServer.listen(process.env.PORT || 5000, () =>
+    console.log(`🚀 Server running on port ${process.env.PORT || 5000}`)
+  );
 }
+bootstrap();
