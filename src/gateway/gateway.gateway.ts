@@ -19,7 +19,7 @@ interface StartCallPayload {
 
 @WebSocketGateway({
   cors: {
-    origin: '*',
+    origin: process.env.FRONTEND_URL,
     credentials: true, 
   },
 })
