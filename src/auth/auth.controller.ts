@@ -112,7 +112,11 @@ async login(
     sameSite: 'none' as const,                     // дозволяє крос-домен
     httpOnly: true,                                // захист від XSS
     maxAge: 60 * 60 * 1000,
+    domain: process.env.COOKIE_DOMAIN
   };
+
+
+
 
 
   response.cookie('access_token', access_token, { ...cookieOptions });
