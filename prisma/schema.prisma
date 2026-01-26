@@ -22,7 +22,6 @@ enum ThemeName {
 
 generator client {
   provider = "prisma-client"
-  output   = "../src/generated/prisma"
   moduleFormat = "cjs" //Matches Prisma's output format with NestJS's CommonJS runtime environment.
 }
 
