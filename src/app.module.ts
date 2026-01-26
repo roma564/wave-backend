@@ -10,12 +10,14 @@ import { AuthModule } from './auth/auth.module';
 import { ModeModule } from './mode/mode.module';
 import { UploadModule } from './upload/upload.module';
 import { MeetingModule } from './meeting/meeting.module';
+import { ConfigModule } from '@nestjs/config';
 
 
 
 
 @Module({
   imports: [ UserModule, ChatModule, MessageModule, GatewayModule, AuthModule, ModeModule, UploadModule, MeetingModule,
+    ConfigModule.forRoot({ isGlobal: true })
   ],
   controllers: [AppController],
   providers: [AppService],

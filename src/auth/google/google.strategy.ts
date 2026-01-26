@@ -6,17 +6,19 @@ import { GooglePayload } from './google-payload.type';
 import { response } from 'express';
 import { UserService } from '../../user/user.service';
 import { User } from '../types/User';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
   // For more details see:  https://developers.google.com/identity/protocols/oauth2/web-server#httprest_1
   constructor(private readonly authService: AuthService,
-    private userService: UserService
+    private userService: UserService,
+    private configService: ConfigService
   ) {
     super({
-      clientID: process.env['AUTH_GOOGLE_KEY'],
-      clientSecret: process.env['AUTH_GOOGLE_SECRET'],
-      callbackURL: process.env['GOOGLE_CALLBACK_URL'],
+      clientID: configService.get<string>('AUTH_GOOGLE_KEY'),
+      clientSecret: configService.get<string>('AUTH_GOOGLE_SECRET'),
+      callbackURL: configService.get<string>('GOOGLE_CALLBACK_URL'),
       passReqToCallback: true,
       scope: ['profile', 'email'],
       accessType: 'offline',
