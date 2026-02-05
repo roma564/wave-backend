@@ -14,7 +14,7 @@ export class S3Service {
         accessKeyId: process.env.SUPABASE_ACCESS_KEY!,
         secretAccessKey: process.env.SUPABASE_SECRET_KEY!,
       },
-      forcePathStyle: true, // важливо для Supabase
+      forcePathStyle: true, 
     });
   }
 

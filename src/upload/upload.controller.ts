@@ -18,31 +18,57 @@ import { diskStorage } from 'multer'
 import * as path from 'path'
 import { UserService } from '../user/user.service'
 import { S3Service } from './s3.service';
+import { PrismaService } from 'src/prisma.service'
 
 
 @Controller('files')
 export class UploadController {
   constructor(
     private readonly userService: UserService,
-    private readonly s3Service: S3Service
+    private readonly s3Service: S3Service,
+    private readonly prisma: PrismaService,
    
   ) {}
    private readonly logger = new Logger(UploadController.name)
 
 
   @Post('upload')
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(
+    FileInterceptor('file', {
+      limits: { fileSize: 20 * 1024 * 1024 }, // 20MB — PDF та інші файли
+    }),
+  )
   async upload(@UploadedFile() file: Express.Multer.File) {
-    const uniqueKey = Date.now() + '-' + file.originalname;
+    this.logger.log('POST /files/upload — запит отримано');
 
-    await this.s3Service.uploadFile(process.env.SUPABASE_BUCKET as string, uniqueKey, file.buffer, file.mimetype);
+    if (!file) {
+      this.logger.warn('POST /files/upload — файл відсутній у запиті');
+      throw new BadRequestException('Файл не завантажено');
+    }
+
+    this.logger.log(`POST /files/upload — файл: ${file.originalname}, mime: ${file.mimetype}, size: ${file.size}`);
+
+    const ext = path.extname(file.originalname); 
+    const uniqueKey = `uploads/${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`;
+
+    try {
+      await this.s3Service.uploadFile(process.env.SUPABASE_BUCKET as string, uniqueKey, file.buffer, file.mimetype);
+    } catch (err) {
+      this.logger.error(`POST /files/upload — помилка S3: ${err instanceof Error ? err.message : String(err)}`, err instanceof Error ? err.stack : undefined);
+      throw new BadRequestException(
+        err instanceof Error ? err.message : 'Помилка завантаження файлу в сховище',
+      );
+    }
+
+    const publicUrl = `https://${process.env.SUPABASE_PROJECT_REF}.supabase.co/storage/v1/object/public/${process.env.SUPABASE_BUCKET}/${uniqueKey}`;
+    this.logger.log(`POST /files/upload — успіх: ${uniqueKey}`);
 
     return {
       key: uniqueKey,
       bucket: process.env.SUPABASE_BUCKET,
       mimeType: file.mimetype,
       size: file.size,
-      url: `${process.env.SUPABASE_S3_ENDPOINT}/${process.env.SUPABASE_BUCKET}/${uniqueKey}`,
+      url: publicUrl,
     };
   }
 
@@ -63,13 +89,21 @@ export class UploadController {
       throw new BadRequestException('Неможливо витягнути ім’я файлу з fileUrl');
     }
 
+    // шукаємо запис у БД по ключу
+    const message = await this.prisma.message.findFirst({
+      where: { fileUrl: { contains: savedFileName } },
+      select: { fileName: true },
+    });
+
+    const originalName = message?.fileName ?? savedFileName;
+
     try {
       const { stream, contentType } = await this.s3Service.downloadFile(
         process.env.SUPABASE_BUCKET!,
-        savedFileName,
+        `uploads/${savedFileName}`,
       );
 
-      res.setHeader('Content-Disposition', `attachment; filename="${savedFileName}"`);
+      res.setHeader('Content-Disposition', `attachment; filename="${originalName}"`);
       res.setHeader('Content-Type', contentType);
 
       stream.pipe(res);
@@ -77,6 +111,7 @@ export class UploadController {
       throw new BadRequestException(`Помилка при завантаженні: ${error.message}`);
     }
   }
+
 
 
 
@@ -105,7 +140,9 @@ export class UploadController {
     throw new BadRequestException('userId is required');
   }
 
-  const uniqueKey = `avatars/${Date.now()}-${Math.round(Math.random() * 1e9)}${path.extname(file.originalname)}`;
+  const ext = path.extname(file.originalname); 
+    const uniqueKey = `avatars/${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`;
+
 
   // вантажимо у S3 через сервіс
   await this.s3Service.uploadFile(
