@@ -29,57 +29,69 @@ export class AuthController {
     async callbackGoogle(@Req() req, @Res({ passthrough: true }) res: Response) {
       const user = req.user;
 
-
       const payload = { sub: user.id, username: user.name };
-      const access_token = await this.jwtService.signAsync(payload);
-
-
-      res.cookie('access_token', access_token, {
-        httpOnly: true,
-        secure: true,
-        sameSite: 'none',
-        domain: '.vercel.app',
-        maxAge: 3600000,
+      const access_token = await this.jwtService.signAsync(payload, {
+        secret: process.env.JWT_SECRET,
+        expiresIn: '1h',
       });
 
+      const streamClient = new StreamClient(
+        process.env.STREAM_API_KEY!,
+        process.env.STREAM_SECRET_KEY!,
+      );
+      const stream_token = streamClient.createToken(String(user.id));
 
-      res.cookie('id', user.id);
-      res.cookie('username', user.name);
-      res.cookie('lastname', user.lastname);
-      res.cookie('email', user.email);
-      res.cookie('avatar', user.avatar);
-
-      res.redirect(`${process.env['FRONTEND_URL']}`);
+      return {
+        message: 'Logged in with Google successfully',
+        redirectUrl: `${process.env.FRONTEND_URL}/chat`,
+        tokens: {
+          access_token,
+          stream_token,
+        },
+        user: {
+          id: user.id,
+          username: user.name,
+          lastname: user.lastname,
+          email: user.email,
+          avatar: user.avatar,
+        },
+      };
     }
 
-    @Post('register')
-    async register(@Res({ passthrough: true }) response: Response, @Body() body: CreateUserDto) {
 
+    @Post('register')
+    async register(@Body() body: CreateUserDto) {
       const user = await this.userService.create(body);
 
       const payload = { sub: user.id, username: user.name };
-      const access_token = await this.jwtService.signAsync(payload);
-
-
-      response.cookie('access_token', access_token, {
-        httpOnly: false,
-        secure: true,
-        sameSite: 'strict',
-        maxAge: 3600000,
+      const access_token = await this.jwtService.signAsync(payload, {
+        secret: process.env.JWT_SECRET,
+        expiresIn: '1h',
       });
 
+      const streamClient = new StreamClient(
+        process.env.STREAM_API_KEY!,
+        process.env.STREAM_SECRET_KEY!,
+      );
+      const stream_token = streamClient.createToken(String(user.id));
 
-      response.cookie('id', user.id);
-      response.cookie('username', user.name);
-      response.cookie('lastname', user.lastname);
-      response.cookie('email', user.email);
-      response.cookie('avatar', user.avatar ?? '');
-
-      return { 
-        message: 'Registered successfully' ,
-        redirectUrl: process.env.FRONTEND_URL,
+      return {
+        message: 'Registered successfully',
+        redirectUrl: `${process.env.FRONTEND_URL}/chat`,
+        tokens: {
+          access_token,
+          stream_token,
+        },
+        user: {
+          id: user.id,
+          username: user.name,
+          lastname: user.lastname,
+          email: user.email,
+          avatar: user.avatar ?? '',
+        },
       };
     }
+
 
 
 
@@ -88,39 +100,39 @@ export class AuthController {
 
 
 
-@Post('login')
-async login(@Body() body: LoginDto) {
-  const { user } = await this.authService.signIn(body.username, body.password);
+  @Post('login')
+  async login(@Body() body: LoginDto) {
+    const { user } = await this.authService.signIn(body.username, body.password);
 
-  const payload = { sub: user.id, username: user.name };
-  const access_token = await this.jwtService.signAsync(payload, {
-    secret: process.env.JWT_SECRET,
-    expiresIn: '1h',
-  });
+    const payload = { sub: user.id, username: user.name };
+    const access_token = await this.jwtService.signAsync(payload, {
+      secret: process.env.JWT_SECRET,
+      expiresIn: '1h',
+    });
 
-  const streamClient = new StreamClient(
-    process.env.STREAM_API_KEY!,
-    process.env.STREAM_SECRET_KEY!,
-  );
-  const stream_token = streamClient.createToken(String(user.id));
+    const streamClient = new StreamClient(
+      process.env.STREAM_API_KEY!,
+      process.env.STREAM_SECRET_KEY!,
+    );
+    const stream_token = streamClient.createToken(String(user.id));
 
 
-  return {
-    message: 'Logged in successfully',
-    redirectUrl: `${process.env.FRONTEND_URL}/chat`,
-    tokens: {
-      access_token,
-      stream_token,
-    },
-    user: {
-      id: user.id,
-      username: user.name,
-      lastname: user.lastname,
-      email: user.email,
-      avatar: user.avatar,
-    },
-  };
-}
+    return {
+      message: 'Logged in successfully',
+      redirectUrl: `${process.env.FRONTEND_URL}/chat`,
+      tokens: {
+        access_token,
+        stream_token,
+      },
+      user: {
+        id: user.id,
+        username: user.name,
+        lastname: user.lastname,
+        email: user.email,
+        avatar: user.avatar,
+      },
+    };
+  }
 
 
 

@@ -56,7 +56,7 @@ export class ModeService {
       where: { id: modeId },
       data: {
         quickMessages: {
-          push: messages, // додає нові елементи до існуючого масиву
+          push: messages, 
         },
       },
       select: { quickMessages: true },

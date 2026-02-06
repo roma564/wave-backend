@@ -14,7 +14,7 @@ enum MessageType {
 
 enum ThemeName {
   BLUE
-  GREEN
+  PASTEL
   YELLOW
   PURPLE
 }
@@ -29,6 +29,7 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
 
 
 

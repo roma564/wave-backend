@@ -1,6 +1,6 @@
 enum ThemeName {
   BLUE,
-  GREEN,
+  PASTEL,
   YELLOW,
   PURPLE
 }
