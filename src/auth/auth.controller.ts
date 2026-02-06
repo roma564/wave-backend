@@ -26,7 +26,7 @@ export class AuthController {
     
     @UseGuards(GoogleOAuth2Guard)
     @Get('callback')
-    async callbackGoogle(@Req() req, @Res({ passthrough: true }) res: Response) {
+    async callbackGoogle(@Req() req, @Res() res: Response) {
       const user = req.user;
 
       const payload = { sub: user.id, username: user.name };
@@ -41,22 +41,19 @@ export class AuthController {
       );
       const stream_token = streamClient.createToken(String(user.id));
 
-      return {
-        message: 'Logged in with Google successfully',
-        redirectUrl: `${process.env.FRONTEND_URL}/chat`,
-        tokens: {
-          access_token,
-          stream_token,
-        },
-        user: {
-          id: user.id,
-          username: user.name,
-          lastname: user.lastname,
-          email: user.email,
-          avatar: user.avatar,
-        },
-      };
+     
+      res.cookie('access_token', access_token, { httpOnly: true, secure: true, sameSite: 'strict' });
+      res.cookie('stream_token', stream_token, { httpOnly: true, secure: true, sameSite: 'strict' });
+      res.cookie('id', String(user.id), { httpOnly: true, secure: true, sameSite: 'strict' });
+      res.cookie('username', user.name, { httpOnly: true, secure: true, sameSite: 'strict' });
+      res.cookie('lastname', user.lastname, { httpOnly: true, secure: true, sameSite: 'strict' });
+      res.cookie('email', user.email, { httpOnly: true, secure: true, sameSite: 'strict' });
+      res.cookie('avatar', user.avatar || '', { httpOnly: true, secure: true, sameSite: 'strict' });
+
+      
+      return res.redirect(`${process.env.FRONTEND_URL}/chat`);
     }
+
 
 
     @Post('register')
