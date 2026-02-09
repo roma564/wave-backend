@@ -68,6 +68,13 @@ export class UserService {
     });
   }
 
+  async findByEmail(email: string): Promise<User | null> {
+    return this.prisma.user.findUnique({
+      where: { email },
+    });
+  }
+  
+
   async findByUsername(identifier: string): Promise<User | null> {
   return this.prisma.user.findFirst({
     where: {
@@ -76,6 +83,8 @@ export class UserService {
         { name: identifier },
       ],
     },
+
+
 
     
   

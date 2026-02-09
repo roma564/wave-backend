@@ -27,9 +27,24 @@ export class AuthController {
     @UseGuards(GoogleOAuth2Guard)
     @Get('callback')
     async callbackGoogle(@Req() req, @Res() res: Response) {
-      const user = req.user;
+      let user = req.user;
 
-      const payload = { sub: user.id, username: user.name };
+      // спробуємо знайти користувача в базі
+      let existingUser = await this.userService.findByEmail(user.email);
+
+      // якщо нема — створюємо
+      if (!existingUser) {
+        existingUser = await this.userService.create({
+          name: user.name,
+          lastname: user.lastname,
+          email: user.email,
+          avatar: user.avatar || '',
+          // можеш додати інші поля, якщо треба
+        });
+      }
+
+      // тепер працюємо з existingUser
+      const payload = { sub: existingUser.id, username: existingUser.name };
       const access_token = await this.jwtService.signAsync(payload, {
         secret: process.env.JWT_SECRET,
         expiresIn: '1h',
@@ -39,20 +54,19 @@ export class AuthController {
         process.env.STREAM_API_KEY!,
         process.env.STREAM_SECRET_KEY!,
       );
-      const stream_token = streamClient.createToken(String(user.id));
+      const stream_token = streamClient.createToken(String(existingUser.id));
 
-     
-      res.cookie('access_token', access_token, { httpOnly: true, secure: true, sameSite: 'strict' });
-      res.cookie('stream_token', stream_token, { httpOnly: true, secure: true, sameSite: 'strict' });
-      res.cookie('id', String(user.id), { httpOnly: true, secure: true, sameSite: 'strict' });
-      res.cookie('username', user.name, { httpOnly: true, secure: true, sameSite: 'strict' });
-      res.cookie('lastname', user.lastname, { httpOnly: true, secure: true, sameSite: 'strict' });
-      res.cookie('email', user.email, { httpOnly: true, secure: true, sameSite: 'strict' });
-      res.cookie('avatar', user.avatar || '', { httpOnly: true, secure: true, sameSite: 'strict' });
+      res.cookie('access_token', access_token);
+      res.cookie('stream_token', stream_token);
+      res.cookie('id', String(existingUser.id));
+      res.cookie('username', existingUser.name);
+      res.cookie('lastname', existingUser.lastname);
+      res.cookie('email', existingUser.email);
+      res.cookie('avatar', existingUser.avatar || '');
 
-      
       return res.redirect(`${process.env.FRONTEND_URL}/chat`);
     }
+
 
 
 

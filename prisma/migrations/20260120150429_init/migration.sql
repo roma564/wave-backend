@@ -2,7 +2,7 @@
 CREATE TYPE "MessageType" AS ENUM ('TEXT', 'IMAGE', 'VIDEO', 'FILE', 'STICKER');
 
 -- CreateEnum
-CREATE TYPE "ThemeName" AS ENUM ('BLUE', 'GREEN', 'YELLOW', 'PURPLE');
+CREATE TYPE "ThemeName" AS ENUM ('BLUE', 'PURPLE', 'YELLOW', 'PURPLE');
 
 -- CreateTable
 CREATE TABLE "User" (
