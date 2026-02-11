@@ -28,22 +28,17 @@ export class AuthController {
     @Get('callback')
     async callbackGoogle(@Req() req, @Res() res: Response) {
       let user = req.user;
-
-      // спробуємо знайти користувача в базі
       let existingUser = await this.userService.findByEmail(user.email);
 
-      // якщо нема — створюємо
       if (!existingUser) {
         existingUser = await this.userService.create({
           name: user.name,
           lastname: user.lastname,
           email: user.email,
           avatar: user.avatar || '',
-          // можеш додати інші поля, якщо треба
         });
       }
 
-      // тепер працюємо з existingUser
       const payload = { sub: existingUser.id, username: existingUser.name };
       const access_token = await this.jwtService.signAsync(payload, {
         secret: process.env.JWT_SECRET,
@@ -56,26 +51,13 @@ export class AuthController {
       );
       const stream_token = streamClient.createToken(String(existingUser.id));
 
-
-      const cookieOptions: CookieOptions = {
-        
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax', // ✅ нижній регістр
-        path: '/',
-      };
-
-      res.cookie('access_token', access_token, cookieOptions);
-      res.cookie('stream_token', stream_token, cookieOptions);
-      res.cookie('id', String(existingUser.id), cookieOptions);
-      res.cookie('username', existingUser.name, cookieOptions);
-      res.cookie('lastname', existingUser.lastname, cookieOptions);
-      res.cookie('email', existingUser.email, cookieOptions);
-      res.cookie('avatar', existingUser.avatar || '', cookieOptions);
-
-      return res.redirect(`${process.env.FRONTEND_URL}/chat`);
-
-
+      // редірект на фронтову сторінку з усіма даними в query
+      return res.redirect(
+        `${process.env.FRONTEND_URL}/google-verification?access_token=${access_token}&stream_token=${stream_token}&id=${existingUser.id}&username=${encodeURIComponent(existingUser.name)}&lastname=${encodeURIComponent(existingUser.lastname)}&email=${encodeURIComponent(existingUser.email)}&avatar=${encodeURIComponent(existingUser.avatar ?? '')}`
+      );
     }
+
+
 
 
 
@@ -98,7 +80,7 @@ export class AuthController {
 
       return {
         message: 'Registered successfully',
-        redirectUrl: `${process.env.FRONTEND_URL}/chat`,
+        redirectUrl: `${process.env.FRONTEND_URL}/google-verification`,
         tokens: {
           access_token,
           stream_token,
