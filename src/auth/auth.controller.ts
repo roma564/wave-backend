@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Post, Req, Request, Res, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { GoogleOAuth2Guard } from './google/google-oauth.guard';
-import { Response } from 'express';
+import { CookieOptions, Response } from 'express';
 import { UserService } from '../user/user.service';
 import { JwtService } from '@nestjs/jwt';
 import { AuthGuard } from './guard/auth.guard';
@@ -56,15 +56,25 @@ export class AuthController {
       );
       const stream_token = streamClient.createToken(String(existingUser.id));
 
-      res.cookie('access_token', access_token);
-      res.cookie('stream_token', stream_token);
-      res.cookie('id', String(existingUser.id));
-      res.cookie('username', existingUser.name);
-      res.cookie('lastname', existingUser.lastname);
-      res.cookie('email', existingUser.email);
-      res.cookie('avatar', existingUser.avatar || '');
+
+      const cookieOptions: CookieOptions = {
+        
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax', // ✅ нижній регістр
+        path: '/',
+      };
+
+      res.cookie('access_token', access_token, cookieOptions);
+      res.cookie('stream_token', stream_token, cookieOptions);
+      res.cookie('id', String(existingUser.id), cookieOptions);
+      res.cookie('username', existingUser.name, cookieOptions);
+      res.cookie('lastname', existingUser.lastname, cookieOptions);
+      res.cookie('email', existingUser.email, cookieOptions);
+      res.cookie('avatar', existingUser.avatar || '', cookieOptions);
 
       return res.redirect(`${process.env.FRONTEND_URL}/chat`);
+
+
     }
 
 
