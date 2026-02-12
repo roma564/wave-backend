@@ -80,7 +80,7 @@ export class AuthController {
 
       return {
         message: 'Registered successfully',
-        redirectUrl: `${process.env.FRONTEND_URL}/google-verification`,
+        redirectUrl: `${process.env.FRONTEND_URL}/chat`,
         tokens: {
           access_token,
           stream_token,
