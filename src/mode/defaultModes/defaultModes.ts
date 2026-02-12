@@ -16,9 +16,9 @@ export const defaultModes = [
   },
   {
     name: 'Робота',
-    theme: ThemeName.PASTEL,
-    scheduledCallMode: false,
-    stickers: true,
+    theme: ThemeName.BLUE,
+    scheduledCallMode: true,
+    stickers: false,
     restrictedSmileMode: true,
     quickMessages: [
       'Готово.',
@@ -43,7 +43,7 @@ export const defaultModes = [
   {
     name: 'Друзі',
     theme: ThemeName.PURPLE,
-    scheduledCallMode: true,
+    scheduledCallMode: false,
     stickers: true,
     restrictedSmileMode: false,
     quickMessages: [
