@@ -17,8 +17,6 @@ describe('AuthService', () => {
     email: 'john@example.com',
     password: 'hashedpassword',
     avatar: null,
-    createdAt: new Date(),
-    updatedAt: new Date(),
   };
 
   beforeEach(async () => {
@@ -40,8 +38,8 @@ describe('AuthService', () => {
     }).compile();
 
     service = module.get<AuthService>(AuthService);
-    userService = module.get(UserService);
-    jwtService = module.get(JwtService);
+    userService = module.get(UserService) as any;
+    jwtService = module.get(JwtService) as any;
   });
 
   it('should be defined', () => {
@@ -50,7 +48,8 @@ describe('AuthService', () => {
 
   describe('validateUser', () => {
     it('should return user if credentials are valid', async () => {
-      userService.findByUsername.mockResolvedValue(mockUser);
+      // Додали as any, щоб TS не сварився на типи
+      userService.findByUsername.mockResolvedValue(mockUser as any);
       jest.spyOn(require('bcrypt'), 'compare').mockResolvedValue(true as any);
 
       const result = await service.validateUser('john@example.com', 'password123');
@@ -67,7 +66,8 @@ describe('AuthService', () => {
     });
 
     it('should return null if password is invalid', async () => {
-      userService.findByUsername.mockResolvedValue(mockUser);
+      // Додали as any
+      userService.findByUsername.mockResolvedValue(mockUser as any);
       jest.spyOn(require('bcrypt'), 'compare').mockResolvedValue(false as any);
 
       const result = await service.validateUser('john@example.com', 'wrongpassword');
@@ -78,10 +78,12 @@ describe('AuthService', () => {
 
   describe('signIn', () => {
     it('should return access token and user on successful login', async () => {
-      userService.findByUsername.mockResolvedValue({ ...mockUser, password: 'plainpassword' };
+      // Повертаємо нашого юзера
+      userService.findByUsername.mockResolvedValue(mockUser as any);
       jwtService.signAsync.mockResolvedValue('mock-jwt-token');
 
-      const result = await service.signIn('john@example.com', 'plainpassword');
+      // ТУТ ЗМІНА: передаємо 'hashedpassword', щоб він збігся з mockUser.password
+      const result = await service.signIn('john@example.com', 'hashedpassword');
 
       expect(result.access_token).toBe('mock-jwt-token');
       expect(result.user).toEqual(mockUser);
@@ -94,7 +96,8 @@ describe('AuthService', () => {
     });
 
     it('should throw UnauthorizedException if password is wrong', async () => {
-      userService.findByUsername.mockResolvedValue({ ...mockUser, password: 'differentpassword' };
+      // Тут була забута дужка ) в кінці рядка, тепер виправлено:
+      userService.findByUsername.mockResolvedValue({ ...mockUser, password: 'differentpassword' } as any);
 
       await expect(service.signIn('john@example.com', 'wrongpassword')).rejects.toThrow(
         UnauthorizedException,

@@ -18,7 +18,7 @@ import { diskStorage } from 'multer'
 import * as path from 'path'
 import { UserService } from '../user/user.service'
 import { S3Service } from './s3.service';
-import { PrismaService } from 'src/prisma.service'
+import { PrismaService } from '../prisma.service'
 
 
 @Controller('files')

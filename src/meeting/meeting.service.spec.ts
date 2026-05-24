@@ -1,11 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { MeetingService } from './meeting.service';
 import { PrismaService } from '../prisma.service';
-import { Meeting, User } from '@prisma/client';
+import { User } from '@prisma/client';
 
 describe('MeetingService', () => {
   let service: MeetingService;
-  let prismaService: jest.Mocked<PrismaService>;
 
   const mockUser: User = {
     id: 1,
@@ -14,31 +13,30 @@ describe('MeetingService', () => {
     email: 'john@example.com',
     password: 'hashedpassword',
     avatar: null,
-    createdAt: new Date(),
-    updatedAt: new Date(),
   };
 
-  const mockMeeting: Meeting & { owner: User; invited_users: User[] } = {
+  const mockMeeting = {
     id: 1,
     title: 'Test Meeting',
-    startDate: new Date(),
+    startDate: new Date('2026-05-24T12:00:00Z'),
     ownerId: 1,
     createdAt: new Date(),
-    updatedAt: new Date(),
     owner: mockUser,
     invited_users: [mockUser],
   };
 
+  const mockPrisma = {
+    meeting: {
+      create: jest.fn(),
+      findUnique: jest.fn(),
+      findMany: jest.fn(),
+      delete: jest.fn(),
+      update: jest.fn(),
+    },
+  };
+
   beforeEach(async () => {
-    const mockPrisma = {
-      meeting: {
-        create: jest.fn(),
-        findUnique: jest.fn(),
-        findMany: jest.fn(),
-        delete: jest.fn(),
-        update: jest.fn(),
-      },
-    };
+    jest.clearAllMocks();
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -48,7 +46,6 @@ describe('MeetingService', () => {
     }).compile();
 
     service = module.get<MeetingService>(MeetingService);
-    prismaService = module.get(PrismaService);
   });
 
   it('should be defined', () => {
@@ -57,68 +54,101 @@ describe('MeetingService', () => {
 
   describe('create', () => {
     it('should create a meeting', async () => {
-      prismaService.meeting.create.mockResolvedValue(mockMeeting);
+      mockPrisma.meeting.create.mockResolvedValue(mockMeeting);
 
-      const result = await service.create({
+      const dto = {
         title: 'Test Meeting',
-        startDate: new Date().toISOString(),
+        startDate: '2026-05-24T12:00:00Z',
         ownerId: 1,
         invitedUserIds: [1],
-      });
+      };
+
+      const result = await service.create(dto);
 
       expect(result).toEqual(mockMeeting);
+      expect(mockPrisma.meeting.create).toHaveBeenCalledWith({
+        data: {
+          title: dto.title,
+          startDate: new Date(dto.startDate),
+          owner: { connect: { id: dto.ownerId } },
+          invited_users: { connect: [{ id: 1 }] },
+        },
+        include: {
+          owner: true,
+          invited_users: true,
+        },
+      });
     });
   });
 
   describe('findAll', () => {
     it('should return all meetings', async () => {
-      prismaService.meeting.findMany.mockResolvedValue([mockMeeting]);
+      mockPrisma.meeting.findMany.mockResolvedValue([mockMeeting]);
 
       const result = await service.findAll();
 
       expect(result).toEqual([mockMeeting]);
+      expect(mockPrisma.meeting.findMany).toHaveBeenCalledWith({
+        include: { owner: true, invited_users: true },
+      });
     });
   });
 
   describe('findOne', () => {
     it('should return meeting by id', async () => {
-      prismaService.meeting.findUnique.mockResolvedValue(mockMeeting);
+      mockPrisma.meeting.findUnique.mockResolvedValue(mockMeeting);
 
       const result = await service.findOne(1);
 
       expect(result).toEqual(mockMeeting);
+      expect(mockPrisma.meeting.findUnique).toHaveBeenCalledWith({
+        where: { id: 1 },
+        include: { owner: true, invited_users: true },
+      });
     });
   });
 
   describe('update', () => {
     it('should update meeting', async () => {
       const updatedMeeting = { ...mockMeeting, title: 'Updated Title' };
-      prismaService.meeting.update.mockResolvedValue(updatedMeeting);
+      mockPrisma.meeting.update.mockResolvedValue(updatedMeeting);
 
       const result = await service.update(1, { title: 'Updated Title' });
 
       expect(result).toEqual(updatedMeeting);
+      
+      // Перевіряємо, чи сервіс правильно підставляє undefined для полів, яких немає в DTO
+      expect(mockPrisma.meeting.update).toHaveBeenCalledWith({
+        where: { id: 1 },
+        data: {
+          title: 'Updated Title',
+          startDate: undefined,
+          ownerId: undefined,
+          invited_users: undefined,
+        },
+        include: { owner: true, invited_users: true },
+      });
     });
   });
 
   describe('remove', () => {
     it('should delete meeting by id', async () => {
-      prismaService.meeting.delete.mockResolvedValue(mockMeeting);
+      mockPrisma.meeting.delete.mockResolvedValue(mockMeeting);
 
       await service.remove(1);
 
-      expect(prismaService.meeting.delete).toHaveBeenCalledWith({ where: { id: 1 } });
+      expect(mockPrisma.meeting.delete).toHaveBeenCalledWith({ where: { id: 1 } });
     });
   });
 
   describe('findAllForUser', () => {
     it('should return all meetings for a user', async () => {
-      prismaService.meeting.findMany.mockResolvedValue([mockMeeting]);
+      mockPrisma.meeting.findMany.mockResolvedValue([mockMeeting]);
 
       const result = await service.findAllForUser(1);
 
       expect(result).toEqual([mockMeeting]);
-      expect(prismaService.meeting.findMany).toHaveBeenCalledWith({
+      expect(mockPrisma.meeting.findMany).toHaveBeenCalledWith({
         where: {
           OR: [{ ownerId: 1 }, { invited_users: { some: { id: 1 } } }],
         },

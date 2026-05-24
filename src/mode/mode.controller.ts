@@ -2,10 +2,14 @@ import { Controller, Get, Param, Post, Body, Patch } from '@nestjs/common';
 import { ModeService } from './mode.service';
 import { CreateModeDto } from './dto/create-mode.dto';
 import { UpdateThemeDto } from './dto/update-theme.dto';
+import { PrismaService } from 'src/prisma.service';
 
 @Controller('mode')
 export class ModeController {
-  constructor(private readonly modeService: ModeService) {}
+  constructor(
+    private readonly modeService: ModeService,
+    private readonly prismaService: PrismaService,
+  ) {}
 
   @Get('user/:id')
   getUserModes(@Param('id') id: string) {
@@ -20,7 +24,7 @@ export class ModeController {
   @Patch(':modeId/add-chat/:chatId')
   addChatToMode(
     @Param('modeId') modeId: string,
-    @Param('chatId') chatId: string
+    @Param('chatId') chatId: string,
   ) {
     return this.modeService.addChatToMode(+modeId, +chatId);
   }
@@ -34,7 +38,7 @@ export class ModeController {
   getQuickMessages(@Param('id') id: string) {
     return this.modeService.getQuickMessages(+id);
   }
-  
+
   @Patch(':id/quick-messages')
   updateQuickMessages(
     @Param('id') id: string,
@@ -43,21 +47,8 @@ export class ModeController {
     return this.modeService.updateQuickMessages(+id, messages);
   }
 
-
-
-
   @Patch(':modeId/set-theme')
-  async setTheme(
-    @Param('modeId') modeId: string,
-    @Body() dto: UpdateThemeDto
-  ) {
+  async setTheme(@Param('modeId') modeId: string, @Body() dto: UpdateThemeDto) {
     return this.modeService.setTheme(+modeId, dto.theme);
   }
-
-  
-
-
-
-
-
 }
